@@ -1,0 +1,6 @@
+# AULA F87 Open Drivers
+# Note: `uv run aula_f87.py` handles this automatically via PEP 723 metadata.
+# This file is for pip users: pip install -r requirements.txt
+# macOS also needs: brew install hidapi
+
+hid>=1.0.6

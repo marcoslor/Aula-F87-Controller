@@ -1,0 +1,43 @@
+# macOS
+.DS_Store
+
+# Next.js
+web/node_modules/
+web/.pnp
+web/.pnp.js
+web/.next/
+web/out/
+web/build/
+web/.vercel/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env
+.venv
+env.bak/
+venv.bak/
+
+# Project specifics
+python-cli/.venv/
+python-cli/venv/
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel deployment
+.vercel/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
