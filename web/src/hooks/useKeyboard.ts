@@ -55,7 +55,7 @@ export function useKeyboard() {
             const pid = dev.productId.toString(16).padStart(4, '0');
             log(`Connected: ${dev.productName || 'AULA F87'} (${vid}:${pid})`);
 
-            const hasVendor = dev.collections.some(c => c.usagePage >= 0xff00);
+            const hasVendor = dev.collections.some(c => (c.usagePage ?? 0) >= 0xff00);
             setStatus(hasVendor
                 ? `Connected: ${dev.productName || 'AULA F87'} (${vid}:${pid})`
                 : '⚠ Wrong interface — no vendor collection'
