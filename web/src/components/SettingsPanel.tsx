@@ -33,8 +33,7 @@ export function SettingsPanel({ onSetSleep, onFactoryReset }: SettingsPanelProps
                 <select
                     value={sleepMinutes}
                     onChange={e => setSleepMinutes(parseInt(e.target.value))}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300
-                     focus:outline-none focus:border-violet-500"
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-violet-500"
                 >
                     <option value={0}>Off</option>
                     <option value={5}>5 minutes</option>
@@ -44,9 +43,7 @@ export function SettingsPanel({ onSetSleep, onFactoryReset }: SettingsPanelProps
                 <button
                     onClick={handleSleep}
                     disabled={applying}
-                    className="w-full py-2 rounded-lg text-sm font-medium transition-all duration-200
-            bg-violet-600 text-white hover:bg-violet-500 shadow-md shadow-violet-600/20
-            disabled:opacity-40 disabled:cursor-default"
+                    className="w-full py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-violet-600 text-white hover:bg-violet-500 shadow-md shadow-violet-600/20 disabled:opacity-40 disabled:cursor-default"
                 >
                     {applying ? 'Setting...' : 'Set Sleep Timer'}
                 </button>
@@ -60,9 +57,7 @@ export function SettingsPanel({ onSetSleep, onFactoryReset }: SettingsPanelProps
                 <button
                     onClick={handleReset}
                     disabled={resetting}
-                    className="w-full py-2 rounded-lg text-sm font-medium transition-all duration-200
-            bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600/30 hover:border-red-500/60
-            disabled:opacity-40 disabled:cursor-default"
+                    className="w-full py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600/30 hover:border-red-500/60 disabled:opacity-40 disabled:cursor-default"
                 >
                     {resetting ? 'Resetting...' : 'Factory Reset'}
                 </button>
