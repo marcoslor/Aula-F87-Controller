@@ -42,11 +42,12 @@ export function EffectsPanel({ onApply }: EffectsPanelProps) {
                     <button
                         key={num}
                         onClick={() => setActiveEffect(parseInt(num))}
-                        className={`text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-150
-              ${activeEffect === parseInt(num)
+                        className={[
+                            'text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
+                            activeEffect === parseInt(num)
                                 ? 'bg-violet-600/20 border border-violet-500/60 text-violet-300 shadow-md shadow-violet-600/10'
                                 : 'bg-zinc-800/60 border border-zinc-700/50 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
-                            }`}
+                        ].join(' ')}
                     >
                         <span className="text-zinc-600 mr-1.5">{num}.</span>
                         {eff.name}
@@ -55,10 +56,9 @@ export function EffectsPanel({ onApply }: EffectsPanelProps) {
             </div>
 
             {/* Controls */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 backdrop-blur-sm
-                      grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 backdrop-blur-sm grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {/* Color */}
-                <div className={`space-y-2 ${!hasColor ? 'opacity-50 grayscale' : ''}`}>
+                <div className={['space-y-2', !hasColor ? 'opacity-50 grayscale' : ''].filter(Boolean).join(' ')}>
                     <label className="text-[0.7rem] uppercase tracking-wider text-zinc-500 font-medium">Color</label>
                     <div className="flex gap-2 items-center">
                         <input
@@ -71,11 +71,12 @@ export function EffectsPanel({ onApply }: EffectsPanelProps) {
                         <button
                             onClick={() => setColorful(!colorful)}
                             disabled={!hasColor}
-                            className={`text-xs px-3 py-2 rounded-md whitespace-nowrap transition-all duration-200 disabled:cursor-not-allowed
-                ${(!hasColor || colorful)
+                            className={[
+                                'text-xs px-3 py-2 rounded-md whitespace-nowrap transition-all duration-200 disabled:cursor-not-allowed',
+                                !hasColor || colorful
                                     ? 'bg-amber-500/15 border border-amber-500/50 text-amber-400'
                                     : 'bg-zinc-800 border border-zinc-700 text-zinc-500 hover:text-zinc-300'
-                                }`}
+                            ].join(' ')}
                         >
                             {hasColor ? 'Colorful' : 'Colorful Only'}
                         </button>
@@ -86,7 +87,7 @@ export function EffectsPanel({ onApply }: EffectsPanelProps) {
                 </div>
 
                 {/* Speed */}
-                <div className={`space-y-2 ${!hasSpeed ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+                <div className={['space-y-2', !hasSpeed ? 'opacity-50 grayscale pointer-events-none' : ''].filter(Boolean).join(' ')}>
                     <label className="text-[0.7rem] uppercase tracking-wider text-zinc-500 font-medium">
                         Speed <span className="text-zinc-400">{hasSpeed ? speed : 'N/A'}</span>
                     </label>
@@ -115,9 +116,7 @@ export function EffectsPanel({ onApply }: EffectsPanelProps) {
                     <button
                         onClick={handleApply}
                         disabled={!activeEffect || applying}
-                        className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200
-              bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-600/20
-              disabled:opacity-40 disabled:cursor-default disabled:shadow-none"
+                        className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-600/20 disabled:opacity-40 disabled:cursor-default disabled:shadow-none"
                     >
                         {applying ? 'Applying...' : 'Apply Effect'}
                     </button>

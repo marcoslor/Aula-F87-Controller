@@ -107,10 +107,12 @@ export function PerKeyPanel({ onApply }: PerKeyPanelProps) {
                                     <div
                                         key={ci}
                                         onClick={(e) => toggleKey(ledIdx, e.shiftKey)}
-                                        className={`h-[34px] flex items-center justify-center rounded text-[0.65rem]
-                      cursor-pointer select-none transition-all duration-100 px-1 whitespace-nowrap
-                      ${isSelected ? 'ring-1 ring-violet-500 shadow-sm shadow-violet-500/30' : ''}
-                      ${!hasColor ? 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:border-zinc-500' : ''}`}
+                        className={[
+                            'h-[34px] flex items-center justify-center rounded text-[0.65rem]',
+                            'cursor-pointer select-none transition-all duration-100 px-1 whitespace-nowrap',
+                            isSelected ? 'ring-1 ring-violet-500 shadow-sm shadow-violet-500/30' : '',
+                            !hasColor ? 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:border-zinc-500' : ''
+                        ].filter(Boolean).join(' ')}
                                         style={{
                                             width: Math.round(width * UNIT - 3),
                                             ...(hasColor ? {

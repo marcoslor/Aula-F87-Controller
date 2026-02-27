@@ -41,11 +41,12 @@ export default function Home() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 py-2 text-sm rounded-md font-medium transition-all duration-200
-              ${tab === t.id
-                ? 'bg-violet-600/20 text-violet-300 border border-violet-500/40'
-                : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
-              }`}
+              className={[
+                'flex-1 py-2 text-sm rounded-md font-medium transition-all duration-200',
+                tab === t.id
+                  ? 'bg-violet-600/20 text-violet-300 border border-violet-500/40'
+                  : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+              ].join(' ')}
           >
             {t.label}
           </button>
