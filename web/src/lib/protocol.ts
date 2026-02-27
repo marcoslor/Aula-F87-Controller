@@ -35,19 +35,15 @@ export const EFFECTS: Record<number, Effect> = {
     3: { name: "Rainbow", speed: true, color: false },
     4: { name: "Flash away", speed: true, color: true },
     5: { name: "Raindrops", speed: true, color: true },
-    6: { name: "Rainbow wheel", speed: true, color: true },
     7: { name: "Ripples shining", speed: true, color: true },
     8: { name: "Stars twinkle", speed: true, color: true },
-    9: { name: "Shadow disappear", speed: true, color: true },
     10: { name: "Retro snake", speed: true, color: true },
     11: { name: "Neon stream", speed: true, color: true },
     12: { name: "Reaction", speed: true, color: true },
     13: { name: "Sine wave", speed: true, color: true },
-    14: { name: "Retinue scanning", speed: true, color: true },
     15: { name: "Rotating windmill", speed: true, color: false },
     16: { name: "Colorful waterfall", speed: true, color: false },
     17: { name: "Blossoming", speed: true, color: false },
-    18: { name: "Rotating storm", speed: true, color: true },
 };
 
 // ── Config template (10 × 15-byte payloads) ─────────────────────────────
