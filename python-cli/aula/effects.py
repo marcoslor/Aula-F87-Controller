@@ -4,24 +4,21 @@ AULA F87 — Lighting effects table and factory-default config template.
 
 # ── Built-in effects ─────────────────────────────────────────────────────
 EFFECTS = {
+    0:  {"name": "OFF",                "speed": False, "color": False},
     1:  {"name": "Fixed on",           "speed": False, "color": True},
     2:  {"name": "Respire",            "speed": True,  "color": True},
     3:  {"name": "Rainbow",            "speed": True,  "color": False},
     4:  {"name": "Flash away",         "speed": True,  "color": True},
     5:  {"name": "Raindrops",          "speed": True,  "color": True},
-    6:  {"name": "Rainbow wheel",      "speed": True,  "color": True},
     7:  {"name": "Ripples shining",    "speed": True,  "color": True},
     8:  {"name": "Stars twinkle",      "speed": True,  "color": True},
-    9:  {"name": "Shadow disappear",   "speed": True,  "color": True},
     10: {"name": "Retro snake",        "speed": True,  "color": True},
     11: {"name": "Neon stream",        "speed": True,  "color": True},
     12: {"name": "Reaction",           "speed": True,  "color": True},
     13: {"name": "Sine wave",          "speed": True,  "color": True},
-    14: {"name": "Retinue scanning",   "speed": True,  "color": True},
     15: {"name": "Rotating windmill",  "speed": True,  "color": False},
     16: {"name": "Colorful waterfall", "speed": True,  "color": False},
     17: {"name": "Blossoming",         "speed": True,  "color": False},
-    18: {"name": "Rotating storm",     "speed": True,  "color": True},
 }
 
 # ── Factory-default config payloads (10 × 15 bytes) ─────────────────────

@@ -195,6 +195,13 @@ Simple modular sum of the first 19 bytes, stored in byte 19.
 
 The effect number in byte 15 is the **software index** (1st column of `LedOpt` in KB.ini), not the hardware ID:
 
+The firmware defines effects 1–18 plus 21 (self-define), but this repository intentionally exposes a reduced app list:
+
+- `0`: `OFF` (turn lights off)
+- `1–5`, `7–13`, `15–17` (working UI/CLI effects)
+- `6`, `9`, `14`, `18`: unsupported in this implementation (omitted from CLI/UI)
+- `21`: per-key mode (exposed via `perkey`)
+
 | # | Name | Speed | Color |
 |---|------|-------|-------|
 | 1 | Fixed_on | no | yes |
