@@ -45,7 +45,17 @@ export function useKeyboard() {
                 log('Requesting device (any)...');
             }
 
-            const [dev] = await navigator.hid.requestDevice({ filters });
+            const hid = (navigator as Navigator & { hid?: HID }).hid;
+            if (!hid) {
+                const reason = isSecureContext
+                    ? 'WebHID API is not available in this browser. Please use a Chromium-based browser.'
+                    : 'WebHID requires a secure context (HTTPS or localhost).';
+                log(`Error: ${reason}`);
+                setStatus(`Error: ${reason}`);
+                return;
+            }
+
+            const [dev] = await hid.requestDevice({ filters });
             if (!dev) { log('No device selected'); return; }
             await dev.open();
             setDevice(dev);
