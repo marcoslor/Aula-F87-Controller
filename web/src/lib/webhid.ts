@@ -87,13 +87,22 @@ export interface EffectOptions {
 }
 
 export async function setEffect(device: HIDDevice, effectNum: number, opts: EffectOptions, log: LogFn) {
+    const isOff = effectNum === 0;
+    if (effectNum === SELF_DEFINE_EFFECT) {
+        log('Self-define is per-key mode. Use the Per-Key tab.');
+        return;
+    }
+
     const eff = EFFECTS[effectNum];
     if (!eff) { log(`Unknown effect ${effectNum}`); return; }
 
-    const { colorRgb = null, colorful = false, speed = null, brightness = null } = opts;
+    const colorRgb = isOff ? null : (opts.colorRgb ?? null);
+    const colorful = isOff ? false : (opts.colorful ?? false);
+    const speed = isOff ? null : (opts.speed ?? null);
+    const brightness = isOff ? 0 : (opts.brightness ?? null);
     const [tgtSeq, tgtOff] = effectTableLoc(effectNum);
 
-    let desc = `── Setting #${effectNum}: ${eff.name}`;
+    let desc = `── Setting #${effectNum}: ${isOff ? 'OFF' : eff.name}`;
     if (colorRgb) desc += `  color=(${colorRgb.join(',')})`;
     if (colorful) desc += '  [colorful]';
     if (brightness !== null) desc += `  bright=${brightness}`;

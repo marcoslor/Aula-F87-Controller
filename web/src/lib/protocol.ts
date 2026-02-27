@@ -30,6 +30,7 @@ export interface Effect {
 }
 
 export const EFFECTS: Record<number, Effect> = {
+    0:  { name: "OFF", speed: false, color: false },
     1: { name: "Fixed on", speed: false, color: true },
     2: { name: "Respire", speed: true, color: true },
     3: { name: "Rainbow", speed: true, color: false },
