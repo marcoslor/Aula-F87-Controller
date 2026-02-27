@@ -13,7 +13,7 @@ Usage:
 
 Commands:
     scan                     Show HID device info (no sudo needed)
-    effect <1-18>            Set built-in effect
+    effect <supported>       Set built-in effect (OFF included as 0)
     list                     Show available effects
     read                     Read current keyboard config
     perkey <key:#color ...>  Set per-key RGB colors

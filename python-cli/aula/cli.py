@@ -23,8 +23,8 @@ def main(argv=None):
     sub.add_parser("read", help="Read current keyboard configuration")
 
     # effect
-    p_eff = sub.add_parser("effect", help="Set a lighting effect (1-18)")
-    p_eff.add_argument("effect_num", type=int, help="Effect number (1-18)")
+    p_eff = sub.add_parser("effect", help="Set a lighting effect (0=OFF, supported built-ins)")
+    p_eff.add_argument("effect_num", type=int, help="Effect number")
     p_eff.add_argument("--color", nargs=3, type=int, metavar=("R", "G", "B"),
                        help="Custom color (0-255 each)")
     p_eff.add_argument("--colorful", action="store_true",
