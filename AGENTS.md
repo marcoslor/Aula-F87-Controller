@@ -29,6 +29,6 @@ AULA F87 is an open-source WebHID keyboard controller for the AULA F87 mechanica
 
 ### Gotchas
 
-- The `vercel.json` at repo root references `npm install` and `npm run build`, but local development uses Bun (matching `bun.lock`). Both work.
+- Both `vercel.json` files (root and `web/`) use Bun. Always use `bun` commands, not `npm`.
 - Next.js 16 uses `reactCompiler: true` in `next.config.ts` — this requires `babel-plugin-react-compiler` (already in devDependencies).
 - No automated test suite exists in the repo (no `test` script in `package.json`).
