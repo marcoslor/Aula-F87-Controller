@@ -12,11 +12,12 @@ export function ConnectionBar({ connected, status, onConnect }: ConnectionBarPro
             <div className="flex gap-3 items-center">
                 <button
                     onClick={() => onConnect(true)}
-                    className={`px-6 py-2.5 rounded-lg font-medium text-sm transition-all duration-200
-            ${connected
+                    className={[
+                        'px-6 py-2.5 rounded-lg font-medium text-sm transition-all duration-200',
+                        connected
                             ? 'bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20'
                             : 'bg-violet-600 border border-violet-500 text-white hover:bg-violet-500 shadow-lg shadow-violet-600/20'
-                        }`}
+                    ].join(' ')}
                 >
                     {connected ? 'Disconnect' : 'Connect Keyboard'}
                 </button>
