@@ -374,6 +374,68 @@ def cmd_sleep(minutes):
     return 0
 
 
+def cmd_debounce(level):
+    """Set the keyboard debounce time (key response time).
+
+    Protocol:
+        - Read 10 config sequences
+        - Set config[0][8] = 0x01 (write flag)
+        - Set config[0][8] = level - 1 (debounce value: 0=1ms, 1=2ms, ..., 4=5ms)
+        - Write all 10 sequences back
+        - Send SAVE command
+
+    Valid values: 1, 2, 3, 4, 5 (milliseconds).
+    """
+    if level not in (1, 2, 3, 4, 5):
+        print(f"Invalid debounce level {level}. Use 1, 2, 3, 4, or 5 (ms).")
+        return 1
+
+    debounce_byte = level - 1
+    print(f"Setting debounce: {level}ms (0x{debounce_byte:02X})")
+
+    dev, mode, info = _find_device()
+    if not dev:
+        print("Keyboard not found.")
+        return 1
+    print(f"  Connected: {mode} (page=0x{info['usage_page']:04X})")
+
+    # Phase 1: Read current config
+    config = _read_config(dev, timeout_ms=300, max_reads=12)
+    got_config = all(c is not None for c in config)
+
+    if not got_config:
+        print("  Could not read current config. Aborting.")
+        dev.close()
+        return 1
+
+    # Show current debounce value
+    cur_val = config[0][8]
+    cur_level = cur_val + 1 if cur_val <= 4 else "?"
+    print(f"  Current: {cur_level}ms (0x{cur_val:02X})")
+
+    # Phase 2: Modify and write config
+    write_frags = []
+    for seq in range(10):
+        f = bytearray(config[seq])
+        f[1] = CMD_WRITE
+        if seq == 0:
+            f[8] = debounce_byte  # debounce byte (also serves as write flag when non-zero)
+        f[19] = _checksum(f)
+        write_frags.append(bytes(f))
+
+    echoes = _tx_bulk(dev, write_frags, "cfg ")
+    print(f"  Config: {len(echoes)}/10 OK")
+
+    # Phase 3: Save
+    save = _build(CMD_SAVE, SUBCMD_CONFIRM, 0, bytes([0x04, 0x07] + [0x00] * 13))
+    echo = _tx_rx(dev, save)
+    print(f"  Save: {'OK' if echo else 'OK (delayed echo)'}")
+
+    dev.close()
+    print(f"  -> Debounce set to {level}ms!")
+    return 0
+
+
 def cmd_reset():
     """Factory reset all lighting settings.
 

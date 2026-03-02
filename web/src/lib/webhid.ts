@@ -247,6 +247,36 @@ export async function setSleepTimer(device: HIDDevice, minutes: number, log: Log
     log(`✓ Sleep timer set to ${label}!\n`);
 }
 
+export async function setDebounce(device: HIDDevice, level: number, log: LogFn) {
+    const debounceByte = level - 1;
+    log(`── Setting debounce: ${level}ms ──`);
+
+    log('Phase 1: Reading config...');
+    const config = await readConfig(device, log);
+    if (!config.every(c => c !== null)) { log('ERROR: Could not read config'); return; }
+
+    const curVal = config[0]![8];
+    const curLevel = curVal <= 4 ? curVal + 1 : '?';
+    log(`  Current: ${curLevel}ms (0x${curVal.toString(16).padStart(2, '0')})`);
+
+    log('Phase 2: Writing config...');
+    const writeFrames: Uint8Array[] = [];
+    for (let s = 0; s < 10; s++) {
+        const f = new Uint8Array(config[s]!);
+        f[1] = CMD_WRITE;
+        if (s === 0) f[8] = debounceByte;
+        f[19] = checksum(f);
+        writeFrames.push(f);
+    }
+    await txBulk(device, writeFrames, 'Config', log);
+
+    log('Phase 3: Saving...');
+    const savePayload = new Uint8Array(15);
+    savePayload[0] = 0x04; savePayload[1] = 0x07;
+    await txRx(device, buildFrame(CMD_SAVE, SUBCMD_CONFIRM, 0, savePayload), log);
+    log(`✓ Debounce set to ${level}ms!\n`);
+}
+
 export async function factoryReset(device: HIDDevice, log: LogFn) {
     log('── Factory resetting keyboard lighting ──');
 

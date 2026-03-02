@@ -1,7 +1,7 @@
 'use client';
 import { useState, useCallback, useRef } from 'react';
 import { WIRED_VID, WIRED_PID, WIRELESS_VID, WIRELESS_PID, hex } from '@/lib/protocol';
-import { setEffect, applyPerKey, setSleepTimer, factoryReset, type EffectOptions } from '@/lib/webhid';
+import { setEffect, applyPerKey, setSleepTimer, setDebounce, factoryReset, type EffectOptions } from '@/lib/webhid';
 
 export function useKeyboard() {
     const [device, setDevice] = useState<HIDDevice | null>(null);
@@ -95,6 +95,12 @@ export function useKeyboard() {
         catch (err: unknown) { log(`ERROR: ${err instanceof Error ? err.message : String(err)}`); }
     }, [device, log]);
 
+    const doSetDebounce = useCallback(async (level: number) => {
+        if (!device?.opened) { log('Not connected!'); return; }
+        try { await setDebounce(device, level, log); }
+        catch (err: unknown) { log(`ERROR: ${err instanceof Error ? err.message : String(err)}`); }
+    }, [device, log]);
+
     const doFactoryReset = useCallback(async () => {
         if (!device?.opened) { log('Not connected!'); return; }
         try { await factoryReset(device, log); }
@@ -103,6 +109,6 @@ export function useKeyboard() {
 
     return {
         connected, status, logs, log,
-        connect, doSetEffect, doApplyPerKey, doSetSleep, doFactoryReset,
+        connect, doSetEffect, doApplyPerKey, doSetSleep, doSetDebounce, doFactoryReset,
     };
 }
