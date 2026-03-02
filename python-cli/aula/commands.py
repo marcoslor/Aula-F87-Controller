@@ -1,7 +1,5 @@
 import time
 
-
-
 from aula.protocol import CMD_WRITE, CMD_COLOR, CMD_SAVE, SUBCMD_CONFIG, SUBCMD_PALETTE, SUBCMD_CONFIRM, \
                           WIRED_VID, WIRED_PID, WIRELESS_VID, WIRELESS_PID, SELF_DEFINE_EFFECT, \
                           _decode_speed_byte, _effect_table_loc, _encode_speed_byte, _checksum, _build

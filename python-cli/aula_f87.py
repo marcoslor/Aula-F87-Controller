@@ -9,11 +9,11 @@ Control AULA F87 keyboard lighting via USB HID.
 Protocol reverse-engineered from pcapng captures of the OEM Windows app.
 
 Usage:
-    sudo -E env DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run aula_f87.py <command>
+    uv run aula_f87.py <command>
 
 Commands:
-    scan                     Show HID device info (no sudo needed)
-    effect <supported>       Set built-in effect (OFF included as 0)
+    scan                     Show HID device info
+    effect <number>          Set built-in effect (0 = off)
     list                     Show available effects
     read                     Read current keyboard config
     perkey <key:#color ...>  Set per-key RGB colors

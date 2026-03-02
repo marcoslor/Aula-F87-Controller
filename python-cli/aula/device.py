@@ -19,8 +19,8 @@ def _find_device(prefer_page=None):
     """
     import hid
 
-    best = None
-    best_mode = None
+    candidates = []
+    fallback = []
 
     for vid, pid, label in [(WIRED_VID, WIRED_PID, "wired"),
                             (WIRELESS_VID, WIRELESS_PID, "wireless")]:
@@ -31,32 +31,73 @@ def _find_device(prefer_page=None):
             if not (0xFF00 <= up <= 0xFFFF):
                 continue
             if prefer_page is not None and up != prefer_page:
-                # Track as fallback
-                if best is None:
-                    best = d
-                    best_mode = label
-                continue
-            best = d
-            best_mode = label
-            if prefer_page is not None:
-                break  # exact match found
-        if best is not None and prefer_page is not None and best["usage_page"] == prefer_page:
-            break
+                fallback.append((d, label))
+            else:
+                candidates.append((d, label))
 
-    if best is None:
+    if not candidates:
+        candidates = fallback
+
+    if not candidates:
         return (None, None, None)
 
-    dev = hid.device()
-    try:
-        dev.open_path(best["path"])
-    except Exception as e:
-        # macOS may deny HID access when not running as root
+    def _open(info):
+        # Backward-compatible constructor for different `hid` package versions.
+        # Older API: hid.device() + open_path().
+        # Newer API: hid.Device(path=...).
+        if hasattr(hid, "device"):
+            dev = hid.device()
+            dev.open_path(info["path"])
+            return dev
+        if hasattr(hid, "Device"):
+            try:
+                return hid.Device(path=info["path"])
+            except Exception:
+                # Retry with VID/PID selector in case path-based open is blocked.
+                return hid.Device(info["vendor_id"], info["product_id"])
         raise RuntimeError(
-            f"Cannot open HID device ({best_mode}): {e}\n"
-            "  On macOS, run with: sudo -E env DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run ..."
-        ) from e
+            "Unsupported `hid` package API: expected `device()` or `Device()`."
+        )
 
-    return (dev, best_mode, best)
+    last_error = None
+    for info, mode in candidates:
+        try:
+            dev = _open(info)
+            return (dev, mode, info)
+        except Exception as e:
+            last_error = (mode, info, e)
+            continue
+
+    if last_error is None:
+        return (None, None, None)
+
+    best_mode, _, err = last_error
+    import platform
+    _os = platform.system()
+    if _os == "Darwin":
+        _hint = (
+            "  On macOS this is usually an IOKit permission issue, not a Python issue.\n"
+            "    1) Grant your terminal app Input Monitoring access:\n"
+            "       System Settings > Privacy & Security > Input Monitoring.\n"
+            "    2) Re-plug the keyboard (or remove/re-pair the wireless adapter).\n"
+            "    3) Alternatively, use the web app controller."
+        )
+    elif _os == "Linux":
+        _hint = (
+            "  On Linux, HID devices are owned by root by default.\n"
+            "    Add a udev rule so your user can open the device without sudo:\n"
+            "      echo 'SUBSYSTEM==\"hidraw\", ATTRS{idVendor}==\"258a\", "
+            "MODE=\"0660\", GROUP=\"plugdev\"' \\\n"
+            "        | sudo tee /etc/udev/rules.d/99-aula-f87.rules\n"
+            "      sudo udevadm control --reload-rules && sudo udevadm trigger\n"
+            "    Then add yourself to the plugdev group (log out and back in):\n"
+            "      sudo usermod -aG plugdev $USER"
+        )
+    else:
+        _hint = "  Ensure your user has permission to open HID devices."
+    raise RuntimeError(
+        f"Cannot open HID device ({best_mode}): {err}\n{_hint}"
+    ) from err
 
 
 def _read_config(dev, timeout_ms=500, max_reads=15):
