@@ -59,23 +59,54 @@ export async function txBulk(device: HIDDevice, frames: Uint8Array[], label: str
     return echoes;
 }
 
-export async function readConfig(device: HIDDevice, log: LogFn): Promise<(Uint8Array | null)[]> {
-    const readFrame = buildFrame(CMD_READ, SUBCMD_CONFIRM, 0, new Uint8Array(15));
-    await sendReport(device, readFrame, log);
-    await sleep(50);
-    const config: (Uint8Array | null)[] = new Array(10).fill(null);
-    for (let attempt = 0; attempt < 12; attempt++) {
-        const r = await readReport(device, 300);
-        if (!r) break;
-        if (r.length >= 20 && r[0] === REPORT_ID && r[1] === CMD_READ && r[2] === SUBCMD_CONFIG) {
-            const seq = r[3];
-            if (seq >= 0 && seq < 10) {
-                config[seq] = r;
-                log(`  cfg[${seq}]=${hex(r)}`);
+export async function readConfig(device: HIDDevice, log: LogFn, retries = 3): Promise<(Uint8Array | null)[]> {
+    // Buffer ALL incoming reports before sending the read request so no
+    // fragments are dropped while JS is awaiting between readReport calls.
+    const buffer: Uint8Array[] = [];
+    const bufferHandler = (e: HIDInputReportEvent) => {
+        const full = new Uint8Array(e.data.buffer.byteLength + 1);
+        full[0] = e.reportId;
+        full.set(new Uint8Array(e.data.buffer), 1);
+        buffer.push(full);
+    };
+    device.addEventListener('inputreport', bufferHandler);
+
+    try {
+        for (let attempt = 0; attempt < retries; attempt++) {
+            if (attempt > 0) {
+                log(`  Retrying config read (attempt ${attempt + 1}/${retries})...`);
+                await sleep(150);
+                buffer.length = 0;
             }
+
+            const readFrame = buildFrame(CMD_READ, SUBCMD_CONFIRM, 0, new Uint8Array(15));
+            await sendReport(device, readFrame, log);
+
+            const config: (Uint8Array | null)[] = new Array(10).fill(null);
+            const deadline = Date.now() + 1500;
+
+            while (Date.now() < deadline) {
+                while (buffer.length > 0) {
+                    const r = buffer.shift()!;
+                    if (r.length >= 20 && r[0] === REPORT_ID && r[1] === CMD_READ && r[2] === SUBCMD_CONFIG) {
+                        const seq = r[3];
+                        if (seq >= 0 && seq < 10) {
+                            config[seq] = r;
+                            log(`  cfg[${seq}]=${hex(r)}`);
+                        }
+                    }
+                }
+                if (config.every(c => c !== null)) break;
+                await sleep(20);
+            }
+
+            if (config.every(c => c !== null)) return config;
         }
+    } finally {
+        device.removeEventListener('inputreport', bufferHandler);
     }
-    return config;
+
+    return new Array(10).fill(null);
 }
 
 // ── High-level operations ───────────────────────────────────────────────
@@ -222,8 +253,17 @@ export async function setSleepTimer(device: HIDDevice, minutes: number, log: Log
     log(`── Setting sleep timer: ${label} ──`);
 
     log('Phase 1: Reading config...');
-    const config = await readConfig(device, log);
-    if (!config.every(c => c !== null)) { log('ERROR: Could not read config'); return; }
+    let config = await readConfig(device, log);
+    let gotConfig = config.every(c => c !== null);
+
+    if (!gotConfig) {
+        log('  Could not read config, retrying...');
+        await sleep(150);
+        config = await readConfig(device, log);
+        gotConfig = config.every(c => c !== null);
+    }
+
+    if (!gotConfig) { log('ERROR: Could not read config after retries'); return; }
 
     const curVal = config[1]![15];
     log(`  Current: ${curVal / 2} min (0x${curVal.toString(16).padStart(2, '0')})`);

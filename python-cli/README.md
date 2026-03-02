@@ -89,7 +89,7 @@ Command-line tool to control AULA F87 keyboard lighting over USB HID.
 | `effect <number>` | Set a lighting effect (see below) |
 | `perkey <key:#RRGGBB ...>` | Set per-key RGB colors |
 | `read` | Read current keyboard configuration |
-| `sleep <0\|5\|10\|15>` | Set sleep timer in minutes (0 = disable) |
+| `sleep <0-60>` | Set sleep timer in minutes (0 = disable, max 60) |
 | `debounce <1\|2\|3\|4\|5>` | Set debounce time in milliseconds (1-5ms) |
 | `reset` | Factory reset all lighting |
 | `raw <hex>` | Send a raw 20-byte HID fragment (debug) |

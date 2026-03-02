@@ -39,16 +39,21 @@ export function SettingsPanel({ onSetSleep, onSetDebounce, onFactoryReset }: Set
             <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 backdrop-blur-sm space-y-3">
                 <h3 className="text-sm font-medium text-zinc-300">Sleep Timer</h3>
                 <p className="text-xs text-zinc-600">Auto-off after inactivity</p>
-                <select
-                    value={sleepMinutes}
-                    onChange={e => setSleepMinutes(parseInt(e.target.value))}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-violet-500"
-                >
-                    <option value={0}>Off</option>
-                    <option value={5}>5 minutes</option>
-                    <option value={10}>10 minutes</option>
-                    <option value={15}>15 minutes</option>
-                </select>
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm text-zinc-300">
+                        <span>{sleepMinutes === 0 ? 'Off' : `${sleepMinutes} min`}</span>
+                        <span className="text-xs text-zinc-500">0-60</span>
+                    </div>
+                    <input
+                        type="range"
+                        min={0}
+                        max={60}
+                        step={1}
+                        value={sleepMinutes}
+                        onChange={e => setSleepMinutes(parseInt(e.target.value))}
+                        className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-violet-500 focus:outline-none focus:accent-violet-400"
+                    />
+                </div>
                 <button
                     onClick={handleSleep}
                     disabled={applyingSleep}

@@ -319,12 +319,8 @@ def cmd_sleep(minutes):
         - Write all 10 sequences back
         - Send SAVE command
 
-    Valid values: 0 (off), 5, 10, 15 minutes.
+    Valid values: 0-60 minutes (0 = disabled).
     """
-    if minutes not in (0, 5, 10, 15):
-        print(f"Invalid sleep time {minutes}. Use 0, 5, 10, or 15.")
-        return 1
-
     sleep_byte = minutes * 2
     label = f"{minutes} min" if minutes else "Off"
     print(f"Setting sleep timer: {label} (0x{sleep_byte:02X})")
