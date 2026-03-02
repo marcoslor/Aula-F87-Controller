@@ -18,6 +18,7 @@ Commands:
     read                     Read current keyboard config
     perkey <key:#color ...>  Set per-key RGB colors
     sleep <0|5|10|15>        Set sleep timer (minutes, 0=off)
+    debounce <1|2|3|4|5>     Set debounce time in milliseconds (1-5ms)
     reset                    Factory reset lighting
     raw <hex>                Send raw 20-byte fragment (debugging)
 """

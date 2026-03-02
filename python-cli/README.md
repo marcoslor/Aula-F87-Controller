@@ -90,6 +90,7 @@ Command-line tool to control AULA F87 keyboard lighting over USB HID.
 | `perkey <key:#RRGGBB ...>` | Set per-key RGB colors |
 | `read` | Read current keyboard configuration |
 | `sleep <0\|5\|10\|15>` | Set sleep timer in minutes (0 = disable) |
+| `debounce <1\|2\|3\|4\|5>` | Set debounce time in milliseconds (1-5ms) |
 | `reset` | Factory reset all lighting |
 | `raw <hex>` | Send a raw 20-byte HID fragment (debug) |
 
@@ -127,6 +128,9 @@ uv run aula_f87.py effect 3 --speed 4
 
 # Per-key: set Escape red, WASD green
 uv run aula_f87.py perkey esc:#ff0000 wasd:#00ff00
+
+# Set debounce to 3ms (default)
+uv run aula_f87.py debounce 3
 
 # List available key names
 uv run aula_f87.py perkey --list-keys
