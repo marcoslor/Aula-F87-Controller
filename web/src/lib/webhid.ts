@@ -42,8 +42,8 @@ async function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
 export async function txRx(device: HIDDevice, frame: Uint8Array, log: LogFn): Promise<Uint8Array | null> {
     await sendReport(device, frame, log);
-    await sleep(3);
-    const echo = await readReport(device, 200);
+    await sleep(15);
+    const echo = await readReport(device, 250);
     if (echo) log(`RX: ${hex(echo)}`);
     else log('RX: (no reply)');
     return echo;
@@ -54,28 +54,42 @@ export async function txBulk(device: HIDDevice, frames: Uint8Array[], label: str
     for (const frame of frames) {
         const echo = await txRx(device, frame, log);
         if (echo) echoes.push(echo);
+        await sleep(5);
     }
     log(`${label}: ${echoes.length}/${frames.length} OK`);
     return echoes;
 }
 
-export async function readConfig(device: HIDDevice, log: LogFn): Promise<(Uint8Array | null)[]> {
-    const readFrame = buildFrame(CMD_READ, SUBCMD_CONFIRM, 0, new Uint8Array(15));
-    await sendReport(device, readFrame, log);
-    await sleep(50);
-    const config: (Uint8Array | null)[] = new Array(10).fill(null);
-    for (let attempt = 0; attempt < 12; attempt++) {
-        const r = await readReport(device, 300);
-        if (!r) break;
-        if (r.length >= 20 && r[0] === REPORT_ID && r[1] === CMD_READ && r[2] === SUBCMD_CONFIG) {
-            const seq = r[3];
-            if (seq >= 0 && seq < 10) {
-                config[seq] = r;
-                log(`  cfg[${seq}]=${hex(r)}`);
+export async function readConfig(device: HIDDevice, log: LogFn, retries = 3): Promise<(Uint8Array | null)[]> {
+    for (let attempt = 0; attempt < retries; attempt++) {
+        if (attempt > 0) {
+            log(`  Retrying config read (attempt ${attempt + 1}/${retries})...`);
+            await sleep(100);
+        }
+
+        const readFrame = buildFrame(CMD_READ, SUBCMD_CONFIRM, 0, new Uint8Array(15));
+        await sendReport(device, readFrame, log);
+        await sleep(100);
+
+        const config: (Uint8Array | null)[] = new Array(10).fill(null);
+        for (let readAttempt = 0; readAttempt < 15; readAttempt++) {
+            const r = await readReport(device, 350);
+            if (!r) break;
+            if (r.length >= 20 && r[0] === REPORT_ID && r[1] === CMD_READ && r[2] === SUBCMD_CONFIG) {
+                const seq = r[3];
+                if (seq >= 0 && seq < 10) {
+                    config[seq] = r;
+                    log(`  cfg[${seq}]=${hex(r)}`);
+                }
             }
         }
+
+        if (config.every(c => c !== null)) {
+            return config;
+        }
     }
-    return config;
+
+    return new Array(10).fill(null);
 }
 
 // ── High-level operations ───────────────────────────────────────────────
@@ -222,8 +236,17 @@ export async function setSleepTimer(device: HIDDevice, minutes: number, log: Log
     log(`── Setting sleep timer: ${label} ──`);
 
     log('Phase 1: Reading config...');
-    const config = await readConfig(device, log);
-    if (!config.every(c => c !== null)) { log('ERROR: Could not read config'); return; }
+    let config = await readConfig(device, log);
+    let gotConfig = config.every(c => c !== null);
+
+    if (!gotConfig) {
+        log('  Could not read config, retrying...');
+        await sleep(150);
+        config = await readConfig(device, log);
+        gotConfig = config.every(c => c !== null);
+    }
+
+    if (!gotConfig) { log('ERROR: Could not read config after retries'); return; }
 
     const curVal = config[1]![15];
     log(`  Current: ${curVal / 2} min (0x${curVal.toString(16).padStart(2, '0')})`);
