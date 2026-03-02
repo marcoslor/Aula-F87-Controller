@@ -57,7 +57,7 @@ export default function Home() {
       <div className="w-full max-w-[920px] mb-6">
         {tab === 'effects' && <EffectsPanel onApply={kb.doSetEffect} />}
         {tab === 'perkey' && <PerKeyPanel onApply={kb.doApplyPerKey} />}
-        {tab === 'settings' && <SettingsPanel onSetSleep={kb.doSetSleep} onFactoryReset={kb.doFactoryReset} />}
+        {tab === 'settings' && <SettingsPanel onSetSleep={kb.doSetSleep} onSetDebounce={kb.doSetDebounce} onFactoryReset={kb.doFactoryReset} />}
       </div>
 
       {/* Log */}

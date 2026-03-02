@@ -56,6 +56,11 @@ def main(argv=None):
     p_sleep.add_argument("minutes", type=int, choices=[0, 5, 10, 15],
                          help="Minutes until sleep (0 = disable)")
 
+    # debounce
+    p_debounce = sub.add_parser("debounce", help="Set debounce time (key response time)")
+    p_debounce.add_argument("level", type=int, choices=[1, 2, 3, 4, 5],
+                            help="Debounce time in milliseconds (1-5)")
+
     # reset
     sub.add_parser("reset", help="Factory reset all lighting settings")
 
@@ -66,7 +71,7 @@ def main(argv=None):
         return 1
 
     from aula.commands import (cmd_scan, cmd_list, cmd_read, cmd_effect,
-                               cmd_perkey, cmd_raw, cmd_sleep, cmd_reset)
+                               cmd_perkey, cmd_raw, cmd_sleep, cmd_debounce, cmd_reset)
     from aula.layout import KEY_NAMES, KEY_GROUPS
 
     if args.command == "scan":
@@ -102,6 +107,8 @@ def main(argv=None):
         return cmd_raw(args.hex)
     elif args.command == "sleep":
         return cmd_sleep(args.minutes)
+    elif args.command == "debounce":
+        return cmd_debounce(args.level)
     elif args.command == "reset":
         return cmd_reset()
 

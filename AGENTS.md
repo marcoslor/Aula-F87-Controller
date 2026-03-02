@@ -32,3 +32,22 @@ AULA F87 is an open-source WebHID keyboard controller for the AULA F87 mechanica
 - The `vercel.json` in `web/` uses Bun. Always use `bun` commands, not `npm`.
 - Next.js 16 uses `reactCompiler: true` in `next.config.ts` — this requires `babel-plugin-react-compiler` (already in devDependencies).
 - No automated test suite exists in the repo (no `test` script in `package.json`).
+
+### Conventional Commits
+
+All commits must follow [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+| Prefix | Use for |
+|--------|---------|
+| `feat:` | New features |
+| `fix:` | Bug fixes |
+| `docs:` | Documentation changes |
+| `chore:` | Maintenance, tooling, dependencies |
+| `refactor:` | Code refactoring without behavior change |
+| `test:` | Adding or updating tests |
+| `style:` | Code style changes (formatting, semicolons, etc.) |
+
+Examples:
+- `feat: add debounce setting to CLI and webapp`
+- `fix: debounce write reliability`
+- `docs: update README with debounce examples`

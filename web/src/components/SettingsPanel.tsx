@@ -3,18 +3,27 @@ import { useState } from 'react';
 
 interface SettingsPanelProps {
     onSetSleep: (minutes: number) => Promise<void>;
+    onSetDebounce: (level: number) => Promise<void>;
     onFactoryReset: () => Promise<void>;
 }
 
-export function SettingsPanel({ onSetSleep, onFactoryReset }: SettingsPanelProps) {
+export function SettingsPanel({ onSetSleep, onSetDebounce, onFactoryReset }: SettingsPanelProps) {
     const [sleepMinutes, setSleepMinutes] = useState(0);
-    const [applying, setApplying] = useState(false);
+    const [debounceLevel, setDebounceLevel] = useState(3);
+    const [applyingSleep, setApplyingSleep] = useState(false);
+    const [applyingDebounce, setApplyingDebounce] = useState(false);
     const [resetting, setResetting] = useState(false);
 
     const handleSleep = async () => {
-        setApplying(true);
+        setApplyingSleep(true);
         try { await onSetSleep(sleepMinutes); }
-        finally { setApplying(false); }
+        finally { setApplyingSleep(false); }
+    };
+
+    const handleDebounce = async () => {
+        setApplyingDebounce(true);
+        try { await onSetDebounce(debounceLevel); }
+        finally { setApplyingDebounce(false); }
     };
 
     const handleReset = async () => {
@@ -42,18 +51,41 @@ export function SettingsPanel({ onSetSleep, onFactoryReset }: SettingsPanelProps
                 </select>
                 <button
                     onClick={handleSleep}
-                    disabled={applying}
+                    disabled={applyingSleep}
                     className="w-full py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-violet-600 text-white hover:bg-violet-500 shadow-md shadow-violet-600/20 disabled:opacity-40 disabled:cursor-default"
                 >
-                    {applying ? 'Setting...' : 'Set Sleep Timer'}
+                    {applyingSleep ? 'Setting...' : 'Set Sleep Timer'}
+                </button>
+            </div>
+
+            {/* Debounce Setting */}
+            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 backdrop-blur-sm space-y-3">
+                <h3 className="text-sm font-medium text-zinc-300">Debounce Time</h3>
+                <p className="text-xs text-zinc-600">Key response time (lower = faster)</p>
+                <select
+                    value={debounceLevel}
+                    onChange={e => setDebounceLevel(parseInt(e.target.value))}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-violet-500"
+                >
+                    <option value={1}>1 ms (fastest)</option>
+                    <option value={2}>2 ms</option>
+                    <option value={3}>3 ms (default)</option>
+                    <option value={4}>4 ms</option>
+                    <option value={5}>5 ms (most stable)</option>
+                </select>
+                <button
+                    onClick={handleDebounce}
+                    disabled={applyingDebounce}
+                    className="w-full py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-violet-600 text-white hover:bg-violet-500 shadow-md shadow-violet-600/20 disabled:opacity-40 disabled:cursor-default"
+                >
+                    {applyingDebounce ? 'Setting...' : 'Set Debounce'}
                 </button>
             </div>
 
             {/* Factory Reset */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 backdrop-blur-sm space-y-3">
+            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 backdrop-blur-sm space-y-3 sm:col-span-2">
                 <h3 className="text-sm font-medium text-zinc-300">Factory Reset</h3>
                 <p className="text-xs text-zinc-600">Restore all default lighting settings</p>
-                <div className="flex-1" />
                 <button
                     onClick={handleReset}
                     disabled={resetting}

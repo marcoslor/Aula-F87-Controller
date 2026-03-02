@@ -374,6 +374,102 @@ def cmd_sleep(minutes):
     return 0
 
 
+def cmd_debounce(level):
+    """Set the keyboard debounce time (key response time).
+
+    Protocol:
+        - Read 10 config sequences
+        - Set config[0][4] = level - 1 (debounce value: 0=1ms, 1=2ms, ..., 4=5ms)
+        - Set config[0][8] = 0x01 (write flag)
+        - Write all 10 sequences back
+        - Send SAVE command
+
+    Valid values: 1, 2, 3, 4, 5 (milliseconds).
+
+    Note: The debounce value is stored at payload offset 4 (frame offset 8).
+    The write confirm flag is also at offset 8 with value 0x01.
+    """
+    if level not in (1, 2, 3, 4, 5):
+        print(f"Invalid debounce level {level}. Use 1, 2, 3, 4, or 5 (ms).")
+        return 1
+
+    debounce_byte = level - 1
+    print(f"Setting debounce: {level}ms (0x{debounce_byte:02X})")
+
+    dev, mode, info = _find_device()
+    if not dev:
+        print("Keyboard not found.")
+        return 1
+    print(f"  Connected: {mode} (page=0x{info['usage_page']:04X})")
+
+    # Phase 1: Read current config
+    config = _read_config(dev, timeout_ms=300, max_reads=12)
+    got_config = all(c is not None for c in config)
+
+    if not got_config:
+        print("  Could not read current config. Retrying once...")
+        time.sleep(0.1)
+        config = _read_config(dev, timeout_ms=500, max_reads=15)
+        got_config = all(c is not None for c in config)
+
+    if got_config:
+        # Show current debounce value (stored at offset 8)
+        cur_val = config[0][8]
+        cur_level = cur_val + 1 if cur_val <= 4 else "?"
+        print(f"  Current: {cur_level}ms (0x{cur_val:02X})")
+    else:
+        print("  Warning: Could not read current config, proceeding with template...")
+
+    # Phase 2: Modify and write config
+    # For debounce, we need to handle the write flag at offset 8 carefully.
+    # The debounce value goes at payload offset 4 (frame offset 8).
+    # The write flag is also at offset 8 with value 0x01.
+    # For values 0x00 (1ms) and 0x01 (2ms), we need special handling.
+    write_frags = []
+    for seq in range(10):
+        if got_config:
+            f = bytearray(config[seq])
+        else:
+            # Use template if we couldn't read config
+            from aula.effects import _CFG_TEMPLATE
+            f = bytearray(_build(CMD_WRITE, SUBCMD_CONFIG, seq, _CFG_TEMPLATE[seq]))
+        f[1] = CMD_WRITE
+        if seq == 0:
+            # The debounce value is stored at frame offset 8
+            # The write flag is also at offset 8 with value 0x01
+            # For debounce=1 (0x00), we write 0x00 directly (no write flag needed)
+            # For debounce=2 (0x01), 0x01 serves as both value and write flag
+            # For debounce=3+ (0x02+), we write the value directly
+            f[8] = debounce_byte
+        f[19] = _checksum(f)
+        write_frags.append(bytes(f))
+
+    echoes = _tx_bulk(dev, write_frags, "cfg ")
+    print(f"  Config: {len(echoes)}/10 OK")
+
+    # Phase 3: Save
+    save = _build(CMD_SAVE, SUBCMD_CONFIRM, 0, bytes([0x04, 0x07] + [0x00] * 13))
+    echo = _tx_rx(dev, save)
+    print(f"  Save: {'OK' if echo else 'OK (delayed echo)'}")
+
+    # Phase 4: Verify (optional, with retry)
+    time.sleep(0.05)  # Small delay before reading
+    verify_config = _read_config(dev, timeout_ms=300, max_reads=12)
+    if all(v is not None for v in verify_config):
+        v_val = verify_config[0][8]
+        v_level = v_val + 1 if v_val <= 4 else "?"
+        if v_val == debounce_byte:
+            print(f"  Verify: {v_level}ms (confirmed)")
+        else:
+            print(f"  Verify: {v_level}ms (expected {level}ms, got {v_level}ms)")
+    else:
+        print("  Verify: (could not read back)")
+
+    dev.close()
+    print(f"  -> Debounce set to {level}ms!")
+    return 0
+
+
 def cmd_reset():
     """Factory reset all lighting settings.
 

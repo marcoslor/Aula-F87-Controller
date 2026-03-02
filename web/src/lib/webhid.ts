@@ -247,6 +247,68 @@ export async function setSleepTimer(device: HIDDevice, minutes: number, log: Log
     log(`✓ Sleep timer set to ${label}!\n`);
 }
 
+export async function setDebounce(device: HIDDevice, level: number, log: LogFn) {
+    const debounceByte = level - 1;
+    log(`── Setting debounce: ${level}ms ──`);
+
+    log('Phase 1: Reading config...');
+    let config = await readConfig(device, log);
+    let gotConfig = config.every(c => c !== null);
+
+    if (!gotConfig) {
+        log('  Could not read config, retrying...');
+        await sleep(100);
+        config = await readConfig(device, log);
+        gotConfig = config.every(c => c !== null);
+    }
+
+    if (gotConfig) {
+        const curVal = config[0]![8];
+        const curLevel = curVal <= 4 ? curVal + 1 : '?';
+        log(`  Current: ${curLevel}ms (0x${curVal.toString(16).padStart(2, '0')})`);
+    } else {
+        log('  Warning: Could not read config, using template...');
+    }
+
+    log('Phase 2: Writing config...');
+    const writeFrames: Uint8Array[] = [];
+    for (let s = 0; s < 10; s++) {
+        let f: Uint8Array;
+        if (gotConfig) {
+            f = new Uint8Array(config[s]!);
+            f[1] = CMD_WRITE;
+        } else {
+            const p = new Uint8Array(CFG_TEMPLATE[s]);
+            if (s === 0) p[4] = 0x01;  // write flag in payload
+            f = buildFrame(CMD_WRITE, SUBCMD_CONFIG, s, p);
+        }
+        if (s === 0) f[8] = debounceByte;
+        f[19] = checksum(f);
+        writeFrames.push(f);
+    }
+    await txBulk(device, writeFrames, 'Config', log);
+
+    log('Phase 3: Saving...');
+    const savePayload = new Uint8Array(15);
+    savePayload[0] = 0x04; savePayload[1] = 0x07;
+    await txRx(device, buildFrame(CMD_SAVE, SUBCMD_CONFIRM, 0, savePayload), log);
+
+    // Phase 4: Verify (optional)
+    await sleep(50);
+    const verifyConfig = await readConfig(device, log);
+    if (verifyConfig.every(c => c !== null)) {
+        const vVal = verifyConfig[0]![8];
+        const vLevel = vVal <= 4 ? vVal + 1 : '?';
+        if (vVal === debounceByte) {
+            log(`✓ Debounce set to ${level}ms (verified)\n`);
+        } else {
+            log(`⚠ Debounce set to ${level}ms (verify shows ${vLevel}ms)\n`);
+        }
+    } else {
+        log(`✓ Debounce set to ${level}ms!\n`);
+    }
+}
+
 export async function factoryReset(device: HIDDevice, log: LogFn) {
     log('── Factory resetting keyboard lighting ──');
 
