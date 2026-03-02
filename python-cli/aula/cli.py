@@ -53,8 +53,8 @@ def main(argv=None):
 
     # sleep
     p_sleep = sub.add_parser("sleep", help="Set sleep timer (auto-off)")
-    p_sleep.add_argument("minutes", type=int, choices=[0, 5, 10, 15],
-                         help="Minutes until sleep (0 = disable)")
+    p_sleep.add_argument("minutes", type=int, choices=range(0, 61),
+                         help="Minutes until sleep (0 = disable, max 60)")
 
     # debounce
     p_debounce = sub.add_parser("debounce", help="Set debounce time (key response time)")
