@@ -1,7 +1,5 @@
 import time
 
-
-
 from aula.protocol import CMD_WRITE, CMD_COLOR, CMD_SAVE, SUBCMD_CONFIG, SUBCMD_PALETTE, SUBCMD_CONFIRM, \
                           WIRED_VID, WIRED_PID, WIRELESS_VID, WIRELESS_PID, SELF_DEFINE_EFFECT, \
                           _decode_speed_byte, _effect_table_loc, _encode_speed_byte, _checksum, _build
@@ -80,12 +78,27 @@ def cmd_read():
 
 def cmd_effect(effect_num, color_rgb=None, colorful=False,
                speed=None, brightness=None, page=None, fast=False):
+    if effect_num == SELF_DEFINE_EFFECT:
+        print("Self-define is per-key mode. Use 'perkey' instead.")
+        return 1
     if effect_num not in EFFECTS:
-        print(f"Unknown effect {effect_num}. Valid: 1-18 (see 'list').")
+        valid = ", ".join(str(k) for k in sorted(EFFECTS))
+        print(f"Unknown effect {effect_num}. Valid: {valid} (see 'list').")
         return 1
 
+    is_off = effect_num == 0
     eff = EFFECTS[effect_num]
-    tgt_seq, tgt_off = _effect_table_loc(effect_num)
+    if is_off:
+        tgt_seq = None
+        tgt_off = None
+    else:
+        tgt_seq, tgt_off = _effect_table_loc(effect_num)
+
+    if is_off:
+        color_rgb = None
+        colorful = False
+        speed = None
+        brightness = 0
 
     desc = f"Setting #{effect_num}: {eff['name']}"
     if color_rgb:
@@ -132,7 +145,7 @@ def cmd_effect(effect_num, color_rgb=None, colorful=False,
                 f[14] = 0x00
                 f[15] = effect_num
                 f[17] = 0x01 if (color_rgb or colorful) else 0x03
-            if seq == tgt_seq:
+            if (not is_off) and seq == tgt_seq:
                 if brightness is not None:
                     f[tgt_off] = brightness
                 cur_spd, cur_cf = _decode_speed_byte(f[tgt_off + 1])
@@ -147,7 +160,7 @@ def cmd_effect(effect_num, color_rgb=None, colorful=False,
                 p[10] = 0x00
                 p[11] = effect_num
                 p[13] = 0x01 if (color_rgb or colorful) else 0x03
-            if seq == tgt_seq:
+            if (not is_off) and seq == tgt_seq:
                 pay_off = tgt_off - 4
                 if brightness is not None:
                     p[pay_off] = brightness
@@ -178,12 +191,15 @@ def cmd_effect(effect_num, color_rgb=None, colorful=False,
     if not fast:
         verify = _read_config(dev, timeout_ms=300, max_reads=12)
         if all(v is not None for v in verify):
-            v_seq, v_off = _effect_table_loc(effect_num)
-            if verify[v_seq]:
-                vb = verify[v_seq][v_off]
-                vs, vc = _decode_speed_byte(verify[v_seq][v_off + 1])
-                vm = "colorful" if vc else "single-color"
-                print(f"  Verify: effect={effect_num}({eff['name']}) bright={vb} speed={vs} [{vm}]")
+            if is_off:
+                print(f"  Verify: effect={effect_num}({eff['name']})")
+            else:
+                v_seq, v_off = _effect_table_loc(effect_num)
+                if verify[v_seq]:
+                    vb = verify[v_seq][v_off]
+                    vs, vc = _decode_speed_byte(verify[v_seq][v_off + 1])
+                    vm = "colorful" if vc else "single-color"
+                    print(f"  Verify: effect={effect_num}({eff['name']}) bright={vb} speed={vs} [{vm}]")
 
     dev.close()
     print(f"  -> {eff['name']} active!")

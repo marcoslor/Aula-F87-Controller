@@ -15,11 +15,11 @@ export function EffectsPanel({ onApply }: EffectsPanelProps) {
     const [brightness, setBrightness] = useState(4);
     const [applying, setApplying] = useState(false);
 
-    const hasColor = activeEffect ? EFFECTS[activeEffect].color : true;
-    const hasSpeed = activeEffect ? EFFECTS[activeEffect].speed : true;
+    const hasColor = activeEffect !== null ? EFFECTS[activeEffect].color : false;
+    const hasSpeed = activeEffect !== null ? EFFECTS[activeEffect].speed : false;
 
     const handleApply = async () => {
-        if (!activeEffect) return;
+        if (activeEffect === null) return;
         setApplying(true);
         try {
             const isColorful = hasColor ? colorful : true;
@@ -115,7 +115,7 @@ export function EffectsPanel({ onApply }: EffectsPanelProps) {
                 <div className="flex items-end">
                     <button
                         onClick={handleApply}
-                        disabled={!activeEffect || applying}
+                        disabled={activeEffect === null || applying}
                         className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-600/20 disabled:opacity-40 disabled:cursor-default disabled:shadow-none"
                     >
                         {applying ? 'Applying...' : 'Apply Effect'}
