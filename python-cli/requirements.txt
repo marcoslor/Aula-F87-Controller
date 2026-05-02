@@ -4,3 +4,4 @@
 # macOS also needs: brew install hidapi
 
 hid>=1.0.6
+python-pcapng>=2.1.1   # optional, for `replay` subcommand (pcapng capture playback)
