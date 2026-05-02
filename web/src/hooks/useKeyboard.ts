@@ -1,6 +1,6 @@
 'use client';
-import { useState, useCallback, useRef } from 'react';
-import { WIRED_VID, WIRED_PID, WIRELESS_VID, WIRELESS_PID, hex } from '@/lib/protocol';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { WIRED_VID, WIRED_PID, WIRELESS_VID, WIRELESS_PID } from '@/lib/protocol';
 import { setEffect, applyPerKey, setSleepTimer, setDebounce, factoryReset, type EffectOptions } from '@/lib/webhid';
 
 export function useKeyboard() {
@@ -9,6 +9,11 @@ export function useKeyboard() {
     const [status, setStatus] = useState('Not connected');
     const [logs, setLogs] = useState<string[]>([]);
     const logsRef = useRef<string[]>([]);
+    const deviceRef = useRef<HIDDevice | null>(null);
+
+    useEffect(() => {
+        deviceRef.current = device;
+    }, [device]);
 
     const log = useCallback((msg: string) => {
         const ts = new Date().toLocaleTimeString('en', { hour12: false, fractionalSecondDigits: 3 });
@@ -77,6 +82,31 @@ export function useKeyboard() {
         }
     }, [device, log]);
 
+    useEffect(() => {
+        const hid = (navigator as Navigator & { hid?: HID }).hid;
+        if (!hid) return;
+
+        const onDisconnect = (ev: HIDConnectionEvent) => {
+            const dev = deviceRef.current;
+            if (!dev || ev.device !== dev) return;
+
+            log(`Disconnected: ${ev.device.productName || 'HID device'} unplugged`);
+            void (async () => {
+                try {
+                    if (ev.device.opened) await ev.device.close();
+                } catch {
+                    /* already torn down */
+                }
+            })();
+            setDevice(null);
+            setConnected(false);
+            setStatus('Not connected');
+        };
+
+        hid.addEventListener('disconnect', onDisconnect);
+        return () => hid.removeEventListener('disconnect', onDisconnect);
+    }, [log]);
+
     const doSetEffect = useCallback(async (effectNum: number, opts: EffectOptions) => {
         if (!device?.opened) { log('Not connected!'); return; }
         try { await setEffect(device, effectNum, opts, log); }
@@ -108,7 +138,7 @@ export function useKeyboard() {
     }, [device, log]);
 
     return {
-        connected, status, logs, log,
+        device, connected, status, logs, log,
         connect, doSetEffect, doApplyPerKey, doSetSleep, doSetDebounce, doFactoryReset,
     };
 }
