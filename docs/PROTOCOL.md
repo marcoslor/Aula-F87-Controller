@@ -3,6 +3,8 @@
 Reverse-engineered from USB captures of the OEM Windows app (Wireshark + USBPcap).
 Confirmed working on macOS via `aula_f87.py`.
 
+**Where the captures live:** see [`captures/README.md`](../captures/README.md). In short: traces under `captures/windows-npcap-wireshark/` were taken on **native Windows** with **Npcap + Wireshark** (full USB control-transfer detail). Older VM sessions live under `captures/macos-host-wireshark-vm/` (**Wireshark on macOS host**, Windows guest running the OEM app).
+
 ## USB Identifiers
 
 | Mode | VID | PID |

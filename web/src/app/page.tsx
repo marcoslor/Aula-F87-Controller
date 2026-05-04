@@ -6,9 +6,10 @@ import { ConnectionBar } from '@/components/ConnectionBar';
 import { EffectsPanel } from '@/components/EffectsPanel';
 import { PerKeyPanel } from '@/components/PerKeyPanel';
 import { SettingsPanel } from '@/components/SettingsPanel';
+import { AnimationsPanel } from '@/components/AnimationsPanel';
 import { LogPanel } from '@/components/LogPanel';
 
-type Tab = 'effects' | 'perkey' | 'settings';
+type Tab = 'effects' | 'perkey' | 'animations' | 'settings';
 
 export default function Home() {
   const kb = useKeyboard();
@@ -17,6 +18,7 @@ export default function Home() {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'effects', label: 'Effects' },
     { id: 'perkey', label: 'Per-Key Colors' },
+    { id: 'animations', label: 'Animations' },
     { id: 'settings', label: 'Settings' },
   ];
 
@@ -57,6 +59,13 @@ export default function Home() {
       <div className="w-full max-w-[920px] mb-6">
         {tab === 'effects' && <EffectsPanel onApply={kb.doSetEffect} />}
         {tab === 'perkey' && <PerKeyPanel onApply={kb.doApplyPerKey} />}
+        {tab === 'animations' && (
+          <AnimationsPanel
+            key={kb.device?.opened ? `${kb.device.vendorId}:${kb.device.productId}:${kb.device.productName}` : 'disconnected'}
+            device={kb.device}
+            log={kb.log}
+          />
+        )}
         {tab === 'settings' && <SettingsPanel onSetSleep={kb.doSetSleep} onSetDebounce={kb.doSetDebounce} onFactoryReset={kb.doFactoryReset} />}
       </div>
 

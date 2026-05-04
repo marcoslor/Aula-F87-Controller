@@ -41,3 +41,4 @@ python-cli/venv/
 .vscode/
 *.swp
 *.swo
+.cursor

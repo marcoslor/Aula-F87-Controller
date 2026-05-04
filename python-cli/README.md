@@ -93,6 +93,8 @@ Command-line tool to control AULA F87 keyboard lighting over USB HID.
 | `debounce <1\|2\|3\|4\|5>` | Set debounce time in milliseconds (1-5ms) |
 | `reset` | Factory reset all lighting |
 | `raw <hex>` | Send a raw 20-byte HID fragment (debug) |
+| `probe` | Dump HID collections + probe both RE protocol families (see `docs/STREAMING.md`) |
+| `bench <mode> <anim>` | Sustained-FPS streaming benchmark (`mode` = `audio` or `perkey`) |
 
 ### Effects
 
@@ -104,15 +106,19 @@ Command-line tool to control AULA F87 keyboard lighting over USB HID.
 | 3 | Rainbow | yes | — |
 | 4 | Flash away | yes | yes |
 | 5 | Raindrops | yes | yes |
+| 6 | Rainbow wheel | yes | yes |
 | 7 | Ripples shining | yes | yes |
 | 8 | Stars twinkle | yes | yes |
+| 9 | Shadow disappear | yes | yes |
 | 10 | Retro snake | yes | yes |
 | 11 | Neon stream | yes | yes |
 | 12 | Reaction | yes | yes |
 | 13 | Sine wave | yes | yes |
+| 14 | Retinue scanning | yes | yes |
 | 15 | Rotating windmill | yes | — |
 | 16 | Colorful waterfall | yes | — |
 | 17 | Blossoming | yes | — |
+| 18 | Rotating storm | yes | yes |
 
 ### Examples
 
@@ -134,4 +140,19 @@ uv run aula_f87.py debounce 3
 
 # List available key names
 uv run aula_f87.py perkey --list-keys
+
+# Which RE applies to this firmware? (probe both 20-byte and 520-byte paths)
+uv run aula_f87.py probe
+
+# Sustained FPS benchmark — brightness-only animation (cmd 0x88)
+uv run aula_f87.py bench audio wave --color 255 0 0 -d 5
+
+# Sustained FPS benchmark — full per-key RGB animation (cmd 0x02)
+uv run aula_f87.py bench perkey rainbow -d 5
+
+# Cap to 60 fps to measure latency stability
+uv run aula_f87.py bench audio sweep --fps 60 -d 10
 ```
+
+See `docs/STREAMING.md` for the streaming architecture and how to use
+`aula.stream.StreamEngine` from your own Python code.
